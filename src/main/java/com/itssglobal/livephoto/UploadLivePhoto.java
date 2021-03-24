@@ -44,7 +44,6 @@ public class UploadLivePhoto implements JavaService2 {
 
         String mimeType = URLConnection.guessContentTypeFromStream(inputStream).split("/")[1];
 
-
         LivePhoto.Request lvePhotoRequest = LivePhoto.request()
                 .applicantId(applicantId);
 
