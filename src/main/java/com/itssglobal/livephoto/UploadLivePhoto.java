@@ -1,7 +1,5 @@
-package com.itssglobal.document;
+package com.itssglobal.livephoto;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.konylabs.middleware.api.ConfigurableParametersHelper;
 import com.konylabs.middleware.api.ServicesManager;
 import com.konylabs.middleware.common.JavaService2;
@@ -10,8 +8,7 @@ import com.konylabs.middleware.controller.DataControllerResponse;
 import com.konylabs.middleware.dataobject.Param;
 import com.konylabs.middleware.dataobject.Result;
 import com.onfido.Onfido;
-import com.onfido.models.Document;
-import lombok.extern.slf4j.Slf4j;
+import com.onfido.models.LivePhoto;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -23,20 +20,16 @@ import java.util.Base64;
  * @email ..: adewaleijalana@gmail.com
  * @created : 3/23/21
  */
-@Slf4j
-public class UploadDocument implements JavaService2 {
 
+public class UploadLivePhoto implements JavaService2 {
     @Override
     public Object invoke(String s, Object[] objects, DataControllerRequest request,
                          DataControllerResponse response) throws Exception {
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
         ServicesManager sm = request.getServicesManager();
         ConfigurableParametersHelper paramHelper = sm.getConfigurableParametersHelper();
         String apiToken = paramHelper.getServerProperty("ONFIDO_SANDBOX_API_TOKEN");
 
-        String fileType = request.getParameter("type");
+
         String fileInBase64 = request.getParameter("file");
         String fileName = request.getParameter("fileName");
         String applicantId = request.getParameter("applicantId");
@@ -49,27 +42,24 @@ public class UploadDocument implements JavaService2 {
                 .apiToken(apiToken)
                 .build();
 
-        Document.Request documentRequest = Document.request()
-        .applicantId(applicantId)
-        .type(fileType);
-
         String mimeType = URLConnection.guessContentTypeFromStream(inputStream).split("/")[1];
 
-        Document document =
-                onfido.document.upload(inputStream, fileName + "." + mimeType, documentRequest);
+
+        LivePhoto.Request lvePhotoRequest = LivePhoto.request()
+                .applicantId(applicantId);
+
+        LivePhoto livePhotoResponse = onfido.livePhoto.upload(inputStream,
+                fileName + "." + mimeType, lvePhotoRequest);
 
         Result result = new Result();
-        result.addParam(new Param("id", document.getId(), "string"));
-        result.addParam(new Param("fileName", document.getFileName(), "string"));
-        result.addParam(new Param("fileType", document.getFileType(), "string"));
-        result.addParam(new Param("fileSize", String.valueOf(document.getFileSize()), "string"));
-        result.addParam(new Param("side", document.getSide(), "string"));
-        result.addParam(new Param("type", document.getType(), "string"));
-        result.addParam(new Param("createdAt", document.getCreatedAt().toString(), "string"));
-        result.addParam(new Param("issuingCountry", document.getIssuingCountry(), "string"));
-        result.addParam(new Param("applicantId", applicantId, "string"));
-        result.addParam(new Param("href", document.getHref(), "string"));
-        result.addParam(new Param("downloadHref", document.getDownloadHref(), "string"));
+
+        result.addParam(new Param("id", livePhotoResponse.getId(), "string"));
+        result.addParam(new Param("fileName", livePhotoResponse.getFileName(), "string"));
+        result.addParam(new Param("fileType", livePhotoResponse.getFileType(), "string"));
+        result.addParam(new Param("fileSize", String.valueOf(livePhotoResponse.getFileSize()), "string"));
+        result.addParam(new Param("createdAt", livePhotoResponse.getCreatedAt().toString(), "string"));
+        result.addParam(new Param("href", livePhotoResponse.getHref(), "string"));
+        result.addParam(new Param("downloadHref", livePhotoResponse.getDownloadHref(), "string"));
 
         return result;
     }
